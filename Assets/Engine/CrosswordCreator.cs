@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -40,11 +41,9 @@ namespace crossword.engine
     public class CrosswordCreator
     {
         public const string EMPTY_SLOT_CHARACTER = "~";
-        public const int TRIES = 100;
 
         private CrosswordsDatabase mDatabase = new CrosswordsDatabase();
         private Crossword mCrossword;
-        private int mTriesCount;
         private int mSizeWidth;
         private int mSizeHeight;
 
@@ -61,12 +60,14 @@ namespace crossword.engine
             mCrossword = new Crossword();
             mCrossword.SetupTiles(mSizeWidth, mSizeHeight);
 
-            ForceQuestionTile(0, 0, new StartPositionAndOrientation(new CrosswordPosition(0, 1), CrosswordTileItem.Orientation.VERTICAL), mSizeHeight, mSizeHeight);
-            ForceQuestionTile(2, 0, new StartPositionAndOrientation(new CrosswordPosition(1, 0), CrosswordTileItem.Orientation.HORIZONTAL), mSizeWidth, mSizeWidth);
-            ForceQuestionTile(mSizeHeight - 2, 0, new StartPositionAndOrientation(new CrosswordPosition(mSizeHeight - 1, 0), CrosswordTileItem.Orientation.HORIZONTAL), mSizeWidth, mSizeWidth);
-            ForceQuestionTile(0, mSizeWidth - 2, new StartPositionAndOrientation(new CrosswordPosition(0, mSizeWidth - 1), CrosswordTileItem.Orientation.VERTICAL), mSizeHeight, mSizeHeight);
+            //Setup corner questions
+            SetQuestionTile(0, 0, new StartPositionAndOrientation(new CrosswordPosition(0, 1), CrosswordTileItem.Orientation.VERTICAL), mSizeHeight, mSizeHeight);
+            SetQuestionTile(2, 0, new StartPositionAndOrientation(new CrosswordPosition(1, 0), CrosswordTileItem.Orientation.HORIZONTAL), mSizeWidth, mSizeWidth);
+            SetQuestionTile(mSizeHeight - 2, 0, new StartPositionAndOrientation(new CrosswordPosition(mSizeHeight - 1, 0), CrosswordTileItem.Orientation.HORIZONTAL), mSizeWidth, mSizeWidth);
+            SetQuestionTile(0, mSizeWidth - 2, new StartPositionAndOrientation(new CrosswordPosition(0, mSizeWidth - 1), CrosswordTileItem.Orientation.VERTICAL), mSizeHeight, mSizeHeight);
 
-            SetupBorderQuestionTiles();
+            //Setup the rest of the questions
+            SetupQuestions();
 
             mCrossword.Log();
 
@@ -77,8 +78,10 @@ namespace crossword.engine
             //SetupCrosswordTiles();
         }
 
-        private void SetupBorderQuestionTiles()
+
+        private void SetupQuestions()
         {
+            #region Rows
             var nList = Enumerable.Range(0, mSizeHeight - 1).ToList();
             nList.Shuffle();
 
@@ -86,14 +89,13 @@ namespace crossword.engine
             {
                 if (mCrossword.GetTile(nList[i], 0).hasValue) continue;
 
-                var answerStartTile = GetAvailableTilesAround(nList[i], 0).GetRandomElement();
-                answerStartTile.orientation = CrosswordTileItem.Orientation.HORIZONTAL;
-                ForceQuestionTile(nList[i], 0, answerStartTile, 1);
-
-                mCrossword.Log();
+                FillLine(nList[i], 0, CrosswordTileItem.Orientation.HORIZONTAL);
             }
+            #endregion
+
             nList.Clear();
 
+            #region Columns
             nList = Enumerable.Range(0, mSizeWidth - 1).ToList();
             nList.Shuffle();
 
@@ -101,30 +103,29 @@ namespace crossword.engine
             {
                 if (mCrossword.GetTile(0, nList[i]).hasValue) continue;
 
-                var answerStartTile = GetAvailableTilesAround(0, nList[i]).GetRandomElement();
-                answerStartTile.orientation = CrosswordTileItem.Orientation.VERTICAL;
-                ForceQuestionTile(0, nList[i], answerStartTile, 1);
-
-                mCrossword.Log();
+                FillLine(0, nList[i], CrosswordTileItem.Orientation.VERTICAL);
             }
+            #endregion
         }
 
-        private void SetupCrosswordTiles()
+        private void FillLine(int row, int column, CrosswordTileItem.Orientation orientation, bool randomOrientation = false)
         {
-            if (!mCrossword.HasUnsetTiles() || mTriesCount > TRIES)
-            {
-                Debug.Log(mCrossword.ToString());
-                return;
+            if (row >= mSizeHeight || column >= mSizeWidth) return;
+
+            if(!mCrossword.GetTile(row, column).hasValue){
+                var answerStartTile = GetAvailableTilesAround(row, column).GetRandomElement();
+                if(!randomOrientation)
+                    answerStartTile.orientation = orientation;
+                SetQuestionTile(row, column, answerStartTile, 1, GetMaxAnswerLength(answerStartTile) - 1);
             }
 
-            SetQuestionTile(mCrossword.GetUnusedTiles().GetRandomElement());
+            row = orientation == CrosswordTileItem.Orientation.VERTICAL ? row + 1 : row;
+            column = orientation == CrosswordTileItem.Orientation.HORIZONTAL ? column + 1 : column;
 
-            mTriesCount++;
-
-            SetupCrosswordTiles();
+            FillLine(row, column, orientation, true);
         }
 
-        private void ForceQuestionTile(int questionRow, int questionColumn, StartPositionAndOrientation answerStartTile, int minCharCount, int maxCharCount = -1)
+        private void SetQuestionTile(int questionRow, int questionColumn, StartPositionAndOrientation answerStartTile, int minCharCount, int maxCharCount = -1)
         {
             var intersections = GetIntersections(answerStartTile);
             if (maxCharCount == -1)
@@ -149,31 +150,31 @@ namespace crossword.engine
             SetAnswerTiles(crossItem, crossDatabaseItem, answerStartTile);
         }
 
-        private void SetQuestionTile(CrosswordTileItem item)
-        {
-            var answerStartTile = GetAvailableTilesAround(item.row, item.column).GetRandomElement();
-            if (answerStartTile == null) return;
+        //private void SetQuestionTile(CrosswordTileItem item)
+        //{
+        //    var answerStartTile = GetAvailableTilesAround(item.row, item.column).GetRandomElement();
+        //    if (answerStartTile == null) return;
 
-            var maxCharLength = GetMaxAnswerLength(answerStartTile);
-            if (maxCharLength == 0) return;
+        //    var maxCharLength = GetMaxAnswerLength(answerStartTile);
+        //    if (maxCharLength == 0) return;
 
-            var intersections = GetIntersections(answerStartTile);
-            if (intersections.TrueForAll(x => x != EMPTY_SLOT_CHARACTER)) return;
+        //    var intersections = GetIntersections(answerStartTile);
+        //    if (intersections.TrueForAll(x => x != EMPTY_SLOT_CHARACTER)) return;
 
-            var crossDatabaseItem = mDatabase.GetRandomItems(1, maxCharLength, GetIntersectionTuples(intersections)).GetRandomElement();
+        //    var crossDatabaseItem = mDatabase.GetRandomItems(1, maxCharLength, GetIntersectionTuples(intersections)).GetRandomElement();
 
-            Debug.Log(string.Format("ANSWER TILE: {0}, MAX CHAR: {1}, INTERSECTION: {2}, DATABASE ITEM: {3}", answerStartTile.ToString(), maxCharLength, IntersectionToString(intersections), crossDatabaseItem.ToString()));
+        //    Debug.Log(string.Format("ANSWER TILE: {0}, MAX CHAR: {1}, INTERSECTION: {2}, DATABASE ITEM: {3}", answerStartTile.ToString(), maxCharLength, IntersectionToString(intersections), crossDatabaseItem.ToString()));
 
-            var crossItem = new CrosswordTileItem();
-            crossItem.orientation = answerStartTile.orientation;
-            crossItem.element = crossDatabaseItem.question;
-            crossItem.hasValue = true;
-            crossItem.questionElement = crossItem;
+        //    var crossItem = new CrosswordTileItem();
+        //    crossItem.orientation = answerStartTile.orientation;
+        //    crossItem.element = crossDatabaseItem.question;
+        //    crossItem.hasValue = true;
+        //    crossItem.questionElement = crossItem;
 
-            mCrossword.SetTile(item.row, item.column, crossItem);
+        //    mCrossword.SetTile(item.row, item.column, crossItem);
 
-            SetAnswerTiles(crossItem, crossDatabaseItem, answerStartTile);
-        }
+        //    SetAnswerTiles(crossItem, crossDatabaseItem, answerStartTile);
+        //}
 
         private void SetAnswerTiles(CrosswordTileItem crossTileItem, CrosswordDatabaseItem crossDatabaseItem, StartPositionAndOrientation answerStartTile)
         {

@@ -19,7 +19,6 @@ namespace crossword.view
 
         private GridLayoutGroup mGridLayoutGroup;
 
-        // Use this for initialization
         void Start()
         {
             mCrossCreator = new CrosswordCreator();

@@ -1,0 +1,19 @@
+﻿<Properties StartupConfiguration="{C70DEA77-593C-B0F0-7823-B4809E56B85A}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/CrosswordView.cs">
+    <Files>
+      <File FileName="Assets/CrosswordTile.cs" Line="13" Column="10" />
+      <File FileName="Assets/Engine/CrosswordTileItem.cs" Line="1" Column="1" />
+      <File FileName="Assets/Engine/CrosswordDatabase.cs" Line="1" Column="1" />
+      <File FileName="Assets/Engine/CrosswordCreator.cs" Line="1" Column="1" />
+      <File FileName="Assets/Engine/Crossword.cs" Line="1" Column="1" />
+      <File FileName="Assets/CrosswordView.cs" Line="24" Column="10" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.UnityCrossword PreferredExecutionTarget="Unity.Editor" />
+  <MultiItemStartupConfigurations />
+</Properties>
