@@ -24,9 +24,9 @@ namespace crossword.engine
     public class StartPositionAndOrientation
     {
         public CrosswordPosition position;
-        public CrosswordTileItem.Orientation orientation;
+        public TileOrientation orientation;
 
-        public StartPositionAndOrientation(CrosswordPosition position, CrosswordTileItem.Orientation orientation)
+        public StartPositionAndOrientation(CrosswordPosition position, TileOrientation orientation)
         {
             this.position = position;
             this.orientation = orientation;
@@ -61,10 +61,10 @@ namespace crossword.engine
             mCrossword.SetupTiles(mSizeWidth, mSizeHeight);
 
             //Setup corner questions
-            SetQuestionTile(0, 0, new StartPositionAndOrientation(new CrosswordPosition(0, 1), CrosswordTileItem.Orientation.VERTICAL), mSizeHeight, mSizeHeight);
-            SetQuestionTile(2, 0, new StartPositionAndOrientation(new CrosswordPosition(1, 0), CrosswordTileItem.Orientation.HORIZONTAL), mSizeWidth, mSizeWidth);
-            SetQuestionTile(mSizeHeight - 2, 0, new StartPositionAndOrientation(new CrosswordPosition(mSizeHeight - 1, 0), CrosswordTileItem.Orientation.HORIZONTAL), mSizeWidth, mSizeWidth);
-            SetQuestionTile(0, mSizeWidth - 2, new StartPositionAndOrientation(new CrosswordPosition(0, mSizeWidth - 1), CrosswordTileItem.Orientation.VERTICAL), mSizeHeight, mSizeHeight);
+            SetQuestionTile(0, 0, new StartPositionAndOrientation(new CrosswordPosition(0, 1), TileOrientation.VERTICAL), mSizeHeight, mSizeHeight);
+            SetQuestionTile(2, 0, new StartPositionAndOrientation(new CrosswordPosition(1, 0), TileOrientation.HORIZONTAL), mSizeWidth, mSizeWidth);
+            SetQuestionTile(mSizeHeight - 2, 0, new StartPositionAndOrientation(new CrosswordPosition(mSizeHeight - 1, 0), TileOrientation.HORIZONTAL), mSizeWidth, mSizeWidth);
+            SetQuestionTile(0, mSizeWidth - 2, new StartPositionAndOrientation(new CrosswordPosition(0, mSizeWidth - 1), TileOrientation.VERTICAL), mSizeHeight, mSizeHeight);
 
             //Setup the rest of the questions
             SetupQuestions();
@@ -89,7 +89,7 @@ namespace crossword.engine
             {
                 if (mCrossword.GetTile(nList[i], 0).hasValue) continue;
 
-                FillLine(nList[i], 0, CrosswordTileItem.Orientation.HORIZONTAL);
+                FillLine(nList[i], 0, TileOrientation.HORIZONTAL, GetAvailableTilesAround(nList[i], 0).GetRandomElement());
             }
             #endregion
 
@@ -103,26 +103,23 @@ namespace crossword.engine
             {
                 if (mCrossword.GetTile(0, nList[i]).hasValue) continue;
 
-                FillLine(0, nList[i], CrosswordTileItem.Orientation.VERTICAL);
+                FillLine(0, nList[i], TileOrientation.VERTICAL, GetAvailableTilesAround(0, nList[i]).GetRandomElement());
             }
             #endregion
         }
 
-        private void FillLine(int row, int column, CrosswordTileItem.Orientation orientation, bool randomOrientation = false)
+        private void FillLine(int row, int column, TileOrientation orientation, StartPositionAndOrientation posOri = null)
         {
             if (row >= mSizeHeight || column >= mSizeWidth) return;
 
             if(!mCrossword.GetTile(row, column).hasValue){
-                var answerStartTile = GetAvailableTilesAround(row, column).GetRandomElement();
-                if(!randomOrientation)
-                    answerStartTile.orientation = orientation;
-                SetQuestionTile(row, column, answerStartTile, 1, GetMaxAnswerLength(answerStartTile) - 1);
+                var answerStartTile = (posOri != null) ? posOri : new StartPositionAndOrientation(GetForwardTilePosition(row, column, orientation), orientation);
+                SetQuestionTile(row, column, answerStartTile, 3, GetMaxAnswerLength(answerStartTile));
             }
 
-            row = orientation == CrosswordTileItem.Orientation.VERTICAL ? row + 1 : row;
-            column = orientation == CrosswordTileItem.Orientation.HORIZONTAL ? column + 1 : column;
+            var newPos = GetForwardTilePosition(row, column, orientation);
 
-            FillLine(row, column, orientation, true);
+            FillLine(newPos.row, newPos.column, orientation);
         }
 
         private void SetQuestionTile(int questionRow, int questionColumn, StartPositionAndOrientation answerStartTile, int minCharCount, int maxCharCount = -1)
@@ -138,11 +135,10 @@ namespace crossword.engine
                 return;
             }
 
-            var crossItem = new CrosswordTileItem();
+            var crossItem = new CrosswordTileQuestionItem();
             crossItem.orientation = answerStartTile.orientation;
             crossItem.element = crossDatabaseItem.question;
-            crossItem.hasValue = true;
-            crossItem.questionElement = crossItem;
+            crossItem.startPositionAndOrientation = answerStartTile;
 
             Debug.Log(string.Format("Setting item: {0} at {1}", crossItem.ToString(), answerStartTile.ToString()));
 
@@ -176,20 +172,19 @@ namespace crossword.engine
         //    SetAnswerTiles(crossItem, crossDatabaseItem, answerStartTile);
         //}
 
-        private void SetAnswerTiles(CrosswordTileItem crossTileItem, CrosswordDatabaseItem crossDatabaseItem, StartPositionAndOrientation answerStartTile)
+        private void SetAnswerTiles(CrosswordTileQuestionItem crossQuestionTileItem, CrosswordDatabaseItem crossDatabaseItem, StartPositionAndOrientation answerStartTile)
         {
             for (int i = 0; i < crossDatabaseItem.answer.Length; i++)
             {
-                int x = answerStartTile.orientation == CrosswordTileItem.Orientation.VERTICAL ? answerStartTile.position.row + i : answerStartTile.position.row;
-                int y = answerStartTile.orientation == CrosswordTileItem.Orientation.HORIZONTAL ? answerStartTile.position.column + i : answerStartTile.position.column;
 
-                var crossItem = new CrosswordTileItem();
+                var newPos = GetForwardTilePosition(answerStartTile.position.row, answerStartTile.position.column, answerStartTile.orientation, i);
+
+                var crossItem = new CrosswordTileAnswerItem();
                 crossItem.orientation = answerStartTile.orientation;
                 crossItem.element = GetCharacterAtIndex(crossDatabaseItem.answer, i).ToString();
-                crossItem.hasValue = true;
-                crossItem.questionElement = crossTileItem;
+                crossItem.questionElement = crossQuestionTileItem;
 
-                mCrossword.SetTile(x, y, crossItem);
+                mCrossword.SetTile(newPos.row, newPos.column, crossItem);
             }
         }
 
@@ -200,27 +195,27 @@ namespace crossword.engine
             if (TileAvailable(row, column + 1))
             {
                 //right horizontal
-                toReturn.Add(new StartPositionAndOrientation(new CrosswordPosition(row, column + 1), CrosswordTileItem.Orientation.HORIZONTAL));
+                toReturn.Add(new StartPositionAndOrientation(new CrosswordPosition(row, column + 1), TileOrientation.HORIZONTAL));
                 //right vertical
                 if (row < mSizeWidth)
-                    toReturn.Add(new StartPositionAndOrientation(new CrosswordPosition(row, column + 1), CrosswordTileItem.Orientation.VERTICAL));
+                    toReturn.Add(new StartPositionAndOrientation(new CrosswordPosition(row, column + 1), TileOrientation.VERTICAL));
             }
             if (TileAvailable(row + 1, column))
             {
                 //down horizontal
                 if (column < mSizeWidth)
-                    toReturn.Add(new StartPositionAndOrientation(new CrosswordPosition(row + 1, column), CrosswordTileItem.Orientation.HORIZONTAL));
+                    toReturn.Add(new StartPositionAndOrientation(new CrosswordPosition(row + 1, column), TileOrientation.HORIZONTAL));
                 //down vertical
-                toReturn.Add(new StartPositionAndOrientation(new CrosswordPosition(row + 1, column), CrosswordTileItem.Orientation.VERTICAL));
+                toReturn.Add(new StartPositionAndOrientation(new CrosswordPosition(row + 1, column), TileOrientation.VERTICAL));
             }
 
             //left vertical
             if (TileAvailable(row, column - 1) && row < mSizeHeight)
-                toReturn.Add(new StartPositionAndOrientation(new CrosswordPosition(row, column - 1), CrosswordTileItem.Orientation.VERTICAL));
+                toReturn.Add(new StartPositionAndOrientation(new CrosswordPosition(row, column - 1), TileOrientation.VERTICAL));
 
             //up horizontal
             if (TileAvailable(row - 1, column) && column < mSizeWidth)
-                toReturn.Add(new StartPositionAndOrientation(new CrosswordPosition(row - 1, column), CrosswordTileItem.Orientation.HORIZONTAL));
+                toReturn.Add(new StartPositionAndOrientation(new CrosswordPosition(row - 1, column), TileOrientation.HORIZONTAL));
 
             return toReturn;
         }
@@ -233,10 +228,9 @@ namespace crossword.engine
             {
                 toReturn++;
 
-                int x = posAndOri.orientation == CrosswordTileItem.Orientation.VERTICAL ? posAndOri.position.row + toReturn : posAndOri.position.row;
-                int y = posAndOri.orientation == CrosswordTileItem.Orientation.HORIZONTAL ? posAndOri.position.column + toReturn : posAndOri.position.column;
+                var newPos = GetForwardTilePosition(posAndOri.position.row, posAndOri.position.column, posAndOri.orientation, toReturn);
 
-                canMove = TileAvailable(x, y);
+                canMove = TileAvailable(newPos.row, newPos.column);
             }
 
             return toReturn;
@@ -251,14 +245,14 @@ namespace crossword.engine
             {
                 string character = EMPTY_SLOT_CHARACTER;
 
-                int row = posAndOri.orientation == CrosswordTileItem.Orientation.VERTICAL ? posAndOri.position.row + iterator : posAndOri.position.row;
-                int column = posAndOri.orientation == CrosswordTileItem.Orientation.HORIZONTAL ? posAndOri.position.column + iterator : posAndOri.position.column;
+                int row = posAndOri.orientation == TileOrientation.VERTICAL ? posAndOri.position.row + iterator : posAndOri.position.row;
+                int column = posAndOri.orientation == TileOrientation.HORIZONTAL ? posAndOri.position.column + iterator : posAndOri.position.column;
 
                 canMove = TileAvailable(row, column);
                 if (!canMove)
                     return toReturn;
 
-                if (mCrossword.GetTile(row, column).hasValue && !mCrossword.GetTile(row, column).isQuestion)
+                if (mCrossword.GetTile(row, column).hasValue && !(mCrossword.GetTile(row, column) is CrosswordTileQuestionItem))
                     character = mCrossword.GetTile(row, column).element;
 
                 toReturn.Add(character);
@@ -267,9 +261,16 @@ namespace crossword.engine
             return toReturn;
         }
 
+        private CrosswordPosition GetForwardTilePosition(int row, int column, TileOrientation orientation, int tileDistance = 1)
+        {
+            row = orientation == TileOrientation.VERTICAL ? row + tileDistance : row;
+            column = orientation == TileOrientation.HORIZONTAL ? column + tileDistance : column;
+            return new CrosswordPosition(row, column);
+        }
+
         private bool TileAvailable(int row, int column)
         {
-            return row >= 0 && row < mSizeHeight && column >= 0 && column < mSizeWidth && !mCrossword.GetTile(row, column).isQuestion;
+            return row >= 0 && row < mSizeHeight && column >= 0 && column < mSizeWidth && !(mCrossword.GetTile(row, column) is CrosswordTileQuestionItem);
         }
 
         private char GetCharacterAtIndex(string word, int i)

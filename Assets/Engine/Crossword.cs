@@ -74,7 +74,7 @@ namespace crossword.engine
                 for (int column = 0; column < tiles.GetLength(1); column++)
                 {
                     if (tiles[row, column].hasValue)
-                        log += tiles[row, column].isQuestion ? "[~]" : "[" + tiles[row, column].element + "]";
+                        log += tiles[row, column] is CrosswordTileQuestionItem ? "[~]" : "[" + tiles[row, column].element + "]";
                     else
                         log += "[0]";
                 }
