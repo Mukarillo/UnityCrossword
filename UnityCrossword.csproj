@@ -254,6 +254,8 @@
     <Compile Include="Assets\Utils\ListUtils.cs" />
     <Compile Include="Assets\Utils\Tuple.cs" />
     <Compile Include="Assets\CrosswordTile.cs" />
+    <Compile Include="Assets\Engine\CrosswordTileQuestionItem.cs" />
+    <Compile Include="Assets\Engine\CrosswordTileAnswerItem.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
