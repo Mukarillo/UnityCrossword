@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 namespace crossword.engine
 {
-    public struct CrosswordPosition
+    public class CrosswordPosition
     {
         public int row;
         public int column;
@@ -42,14 +43,17 @@ namespace crossword.engine
     {
         public const string EMPTY_SLOT_CHARACTER = "~";
 
-        private CrosswordsDatabase mDatabase = new CrosswordsDatabase();
+        private CrosswordDatabase mDatabase = new CrosswordDatabase();
         private Crossword mCrossword;
         private int mSizeWidth;
         private int mSizeHeight;
 
         public void InitDatabase()
         {
-            mDatabase.SetupDatabase();
+            StreamReader reader = new StreamReader("Assets/database.json");
+            string s = reader.ReadToEnd();
+            Debug.Log(s);
+            mDatabase = JsonUtility.FromJson<CrosswordDatabase>(s);
         }
 
         public Crossword CreateCrossword(int sizeWidth = 9, int sizeHeight = 14)
