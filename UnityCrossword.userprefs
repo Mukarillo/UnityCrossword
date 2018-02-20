@@ -3,12 +3,10 @@
     <Files>
       <File FileName="Assets/CrosswordTile.cs" Line="13" Column="10" />
       <File FileName="Assets/Engine/CrosswordTileItem.cs" Line="13" Column="44" />
-      <File FileName="Assets/Engine/CrosswordDatabase.cs" Line="154" Column="63" />
+      <File FileName="Assets/Engine/CrosswordDatabase.cs" Line="29" Column="39" />
+      <File FileName="Assets/Engine/CrosswordCreator.cs" Line="89" Column="29" />
       <File FileName="Assets/Engine/Crossword.cs" Line="54" Column="10" />
       <File FileName="Assets/CrosswordView.cs" Line="32" Column="87" />
-      <File FileName="Assets/Engine/CrosswordTileQuestionItem.cs" Line="8" Column="2" />
-      <File FileName="Assets/Engine/CrosswordTileAnswerItem.cs" Line="8" Column="2" />
-      <File FileName="Assets/Engine/CrosswordCreator.cs" Line="41" Column="18" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />

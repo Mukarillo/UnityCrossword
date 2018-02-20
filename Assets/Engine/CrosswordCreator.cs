@@ -52,7 +52,6 @@ namespace crossword.engine
         {
             StreamReader reader = new StreamReader("Assets/database.json");
             string s = reader.ReadToEnd();
-            Debug.Log(s);
             mDatabase = JsonUtility.FromJson<CrosswordDatabase>(s);
         }
 
@@ -86,7 +85,7 @@ namespace crossword.engine
         private void SetupQuestions()
         {
             #region Rows
-            var nList = Enumerable.Range(0, mSizeHeight - 1).ToList();
+            var nList = Enumerable.Range(1, mSizeHeight - 1).ToList();
             nList.Shuffle();
 
             for (int i = 0; i < nList.Count; i++)
@@ -100,7 +99,7 @@ namespace crossword.engine
             nList.Clear();
 
             #region Columns
-            nList = Enumerable.Range(0, mSizeWidth - 1).ToList();
+            nList = Enumerable.Range(1, mSizeWidth - 1).ToList();
             nList.Shuffle();
 
             for (int i = 0; i < nList.Count; i++)
@@ -118,7 +117,7 @@ namespace crossword.engine
 
             if(!mCrossword.GetTile(row, column).hasValue){
                 var answerStartTile = (posOri != null) ? posOri : new StartPositionAndOrientation(GetForwardTilePosition(row, column, orientation), orientation);
-                SetQuestionTile(row, column, answerStartTile, 3, GetMaxAnswerLength(answerStartTile));
+                SetQuestionTile(row, column, answerStartTile, 1, GetMaxAnswerLength(answerStartTile));
             }
 
             var newPos = GetForwardTilePosition(row, column, orientation);
@@ -144,7 +143,7 @@ namespace crossword.engine
             crossItem.element = crossDatabaseItem.question;
             crossItem.startPositionAndOrientation = answerStartTile;
 
-            Debug.Log(string.Format("Setting item: {0} at {1}", crossItem.ToString(), answerStartTile.ToString()));
+            //Debug.Log(string.Format("Setting item: {0} at {1}", crossItem.ToString(), answerStartTile.ToString()));
 
             mCrossword.SetTile(questionRow, questionColumn, crossItem);
             SetAnswerTiles(crossItem, crossDatabaseItem, answerStartTile);
