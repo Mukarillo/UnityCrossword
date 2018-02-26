@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace crossword.engine
 {
-    public enum TileOrientation
+    public enum CrosswordOrientation
     {
         HORIZONTAL,
         VERTICAL
@@ -10,7 +10,7 @@ namespace crossword.engine
 
     public class CrosswordTileItem
     {
-        public TileOrientation orientation;
+        public CrosswordOrientation orientation;
         public int row;
         public int column;
         public string element;

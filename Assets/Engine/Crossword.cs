@@ -19,21 +19,21 @@ namespace crossword.engine
             {
                 for (int column = 0; column < tiles.GetLength(1); column++)
                 {
-                    SetTile(row, column, new CrosswordTileItem());
+                    SetTile(new CrosswordPosition(row, column), new CrosswordTileItem());
                 }
             }
         }
 
-        public void SetTile(int row, int column, CrosswordTileItem tileItem)
+        public void SetTile(CrosswordPosition pos , CrosswordTileItem tileItem)
         {
-            tileItem.row = row;
-            tileItem.column = column;
-            tiles[row, column] = tileItem;
+            tileItem.row = pos.row;
+            tileItem.column = pos.column;
+            tiles[pos.row, pos.column] = tileItem;
         }
 
-        public CrosswordTileItem GetTile(int row, int column)
+        public CrosswordTileItem GetTile(CrosswordPosition pos)
         {
-            return tiles[row, column];
+            return tiles[pos.row, pos.column];
         }
 
         public bool HasUnsetTiles()

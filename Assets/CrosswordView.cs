@@ -37,7 +37,7 @@ namespace crossword.view
                 for (int column = 0; column < mCrossword.tiles.GetLength(1); column++)
                 {
                     CrosswordTile tile = Instantiate(crosswordTilePrefab, crosswordTileParent).GetComponent<CrosswordTile>();
-                    tile.SetupTile(mCrossword.GetTile(row,column).element);
+                    tile.SetupTile(mCrossword.GetTile(new CrosswordPosition(row,column)).element);
                 }
             }
         }

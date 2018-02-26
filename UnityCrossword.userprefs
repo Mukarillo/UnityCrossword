@@ -1,12 +1,14 @@
 ﻿<Properties StartupConfiguration="{C70DEA77-593C-B0F0-7823-B4809E56B85A}|">
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Engine/CrosswordCreator.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Utils/Tuple.cs">
     <Files>
       <File FileName="Assets/CrosswordTile.cs" Line="13" Column="10" />
-      <File FileName="Assets/Engine/CrosswordTileItem.cs" Line="13" Column="44" />
-      <File FileName="Assets/Engine/CrosswordDatabase.cs" Line="29" Column="39" />
-      <File FileName="Assets/Engine/CrosswordCreator.cs" Line="89" Column="29" />
-      <File FileName="Assets/Engine/Crossword.cs" Line="54" Column="10" />
+      <File FileName="Assets/Engine/CrosswordTileItem.cs" Line="11" Column="31" />
+      <File FileName="Assets/Engine/CrosswordDatabase.cs" Line="39" Column="35" />
+      <File FileName="Assets/Engine/CrosswordCreator.cs" Line="215" Column="17" />
+      <File FileName="Assets/Engine/Crossword.cs" Line="36" Column="1" />
       <File FileName="Assets/CrosswordView.cs" Line="32" Column="87" />
+      <File FileName="Assets/Engine/CrosswordTileAnswerItem.cs" Line="19" Column="2" />
+      <File FileName="Assets/Utils/Tuple.cs" Line="18" Column="5" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
