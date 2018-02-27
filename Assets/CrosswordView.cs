@@ -22,7 +22,6 @@ namespace crossword.view
         void Start()
         {
             mCrossCreator = new CrosswordCreator();
-            mCrossCreator.InitDatabase();
             mCrossword = mCrossCreator.CreateCrossword(sizeWidth, sizeHeight);
 
             mGridLayoutGroup = crosswordTileParent.gameObject.AddComponent<GridLayoutGroup>();

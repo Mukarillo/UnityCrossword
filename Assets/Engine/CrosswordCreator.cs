@@ -48,26 +48,21 @@ namespace crossword.engine
         private int mSizeWidth;
         private int mSizeHeight;
 
-        public void InitDatabase()
-        {
-            StreamReader reader = new StreamReader("Assets/database.json");
-            string s = reader.ReadToEnd();
-            mDatabase = JsonUtility.FromJson<CrosswordDatabase>(s);
-        }
-
         public Crossword CreateCrossword(int sizeWidth = 9, int sizeHeight = 14)
         {
             mSizeWidth = sizeWidth;
             mSizeHeight = sizeHeight;
 
+            mDatabase.InitiateDatabase();
+
             mCrossword = new Crossword();
             mCrossword.SetupTiles(mSizeWidth, mSizeHeight);
 
             //Setup corner questions
-            SetQuestionTile(0, 0, new CrosswordPositionAndOrientation(new CrosswordPosition(0, 1), CrosswordOrientation.VERTICAL), new Tuple<int, int>(mSizeHeight, mSizeHeight));
-            SetQuestionTile(2, 0, new CrosswordPositionAndOrientation(new CrosswordPosition(1, 0), CrosswordOrientation.HORIZONTAL), new Tuple<int, int>(mSizeWidth, mSizeWidth));
-            SetQuestionTile(mSizeHeight - 2, 0, new CrosswordPositionAndOrientation(new CrosswordPosition(mSizeHeight - 1, 0), CrosswordOrientation.HORIZONTAL), new Tuple<int, int>(mSizeWidth, mSizeWidth));
-            SetQuestionTile(0, mSizeWidth - 2, new CrosswordPositionAndOrientation(new CrosswordPosition(0, mSizeWidth - 1), CrosswordOrientation.VERTICAL), new Tuple<int, int>(mSizeHeight, mSizeHeight));
+            SetQuestionTile(0, 0, new CrosswordPositionAndOrientation(new CrosswordPosition(0, 1), CrosswordOrientation.VERTICAL), new Tuple<int, int>(0, mSizeHeight));
+            SetQuestionTile(2, 0, new CrosswordPositionAndOrientation(new CrosswordPosition(1, 0), CrosswordOrientation.HORIZONTAL), new Tuple<int, int>(0, mSizeWidth));
+            SetQuestionTile(mSizeHeight - 2, 0, new CrosswordPositionAndOrientation(new CrosswordPosition(mSizeHeight - 1, 0), CrosswordOrientation.HORIZONTAL), new Tuple<int, int>(0, mSizeWidth));
+            SetQuestionTile(0, mSizeWidth - 2, new CrosswordPositionAndOrientation(new CrosswordPosition(0, mSizeWidth - 1), CrosswordOrientation.VERTICAL), new Tuple<int, int>(0, mSizeHeight));
 
             //Setup the rest of the questions
             SetupQuestions();
@@ -95,8 +90,6 @@ namespace crossword.engine
                 FillLine(new CrosswordPosition(nList[i], 0), CrosswordOrientation.HORIZONTAL, tile);
             }
             #endregion
-
-            return;
 
             nList.Clear();
 
@@ -132,14 +125,14 @@ namespace crossword.engine
             FillLine(answerStartTile.position, orientation);
         }
 
-        private void SetQuestionTile(int questionRow, int questionColumn, CrosswordPositionAndOrientation answerStartTile, Tuple<int, int> answerMinMaxConstrains)
+        private void SetQuestionTile(int questionRow, int questionColumn, CrosswordPositionAndOrientation answerStartTile, Tuple<int, int> answerLessOrGreaterThan)
         {
             var intersections = GetIntersections(answerStartTile);
-            var crossDatabaseItem = mDatabase.GetRandomItems(answerMinMaxConstrains.value1, answerMinMaxConstrains.value2, GetIntersectionTuples(intersections)).GetRandomElement();
+            var crossDatabaseItem = mDatabase.GetRandomItem(answerLessOrGreaterThan.value1, answerLessOrGreaterThan.value2, GetIntersectionTuples(intersections));
 
             if (crossDatabaseItem == null)
             {
-                Debug.LogWarning(string.Format("Impossible to find word with min/max characters: {0} and with intersections: {1}", answerMinMaxConstrains, IntersectionToString(intersections)));
+                Debug.LogWarning(string.Format("Impossible to find word with min/max characters: {0} and with intersections: {1}", answerLessOrGreaterThan, IntersectionToString(intersections)));
                 return;
             }
 
@@ -202,19 +195,20 @@ namespace crossword.engine
 
         private Tuple<int, int> GetMinMaxAnswerLength(CrosswordPositionAndOrientation posAndOri)
         {
-            int min = 1;
-            int max = -1;
+            int equal = -1;
 
             bool canMove = true;
             while (canMove)
             {
-                max++;
+                equal++;
 
-                var newPos = GetForwardTilePosition(posAndOri.position, posAndOri.orientation, max);
+                var newPos = GetForwardTilePosition(posAndOri.position, posAndOri.orientation, equal);
                 canMove = TileAvailable(newPos);
             }
 
-            return new Tuple<int, int>(min, max);
+            int lessThan = MathUtils.Clamp(equal - 1, 0, int.MaxValue);
+
+            return new Tuple<int, int>(lessThan, equal);
         }
 
         private List<string> GetIntersections(CrosswordPositionAndOrientation posAndOri)

@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{C70DEA77-593C-B0F0-7823-B4809E56B85A}</ProjectGuid>
+    <ProjectGuid>{FCDF92C9-C154-88B9-F514-34B27C6ABFD5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Assembly-CSharp</AssemblyName>
     <FileAlignment>512</FileAlignment>
@@ -246,16 +246,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\CrosswordTile.cs" />
+    <Compile Include="Assets\CrosswordView.cs" />
     <Compile Include="Assets\Engine\Crossword.cs" />
     <Compile Include="Assets\Engine\CrosswordCreator.cs" />
     <Compile Include="Assets\Engine\CrosswordDatabase.cs" />
-    <Compile Include="Assets\Engine\CrosswordTileItem.cs" />
-    <Compile Include="Assets\CrosswordView.cs" />
-    <Compile Include="Assets\Utils\ListUtils.cs" />
-    <Compile Include="Assets\Utils\Tuple.cs" />
-    <Compile Include="Assets\CrosswordTile.cs" />
-    <Compile Include="Assets\Engine\CrosswordTileQuestionItem.cs" />
     <Compile Include="Assets\Engine\CrosswordTileAnswerItem.cs" />
+    <Compile Include="Assets\Engine\CrosswordTileItem.cs" />
+    <Compile Include="Assets\Engine\CrosswordTileQuestionItem.cs" />
+    <Compile Include="Assets\Utils\ListUtils.cs" />
+    <Compile Include="Assets\Utils\MathUtils.cs" />
+    <Compile Include="Assets\Utils\Tuple.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

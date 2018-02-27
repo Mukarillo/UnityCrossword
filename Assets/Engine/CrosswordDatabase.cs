@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.IO;
 
 namespace crossword.engine
 {
@@ -17,18 +18,6 @@ namespace crossword.engine
             this.answer = answer;
         }
 
-        public bool AnswerStartsWith(char c)
-        {
-            if (string.IsNullOrEmpty(answer)) return false;
-            return answer[0] == c;
-        }
-
-        public bool AnswerCharCount(int n)
-        {
-            if (string.IsNullOrEmpty(answer)) return false;
-            return answer.Length == n;
-        }
-
         public override string ToString()
         {
             return string.Format("[CrosswordDatabaseItem] QUESTION: {0} ~ ANSWER: {1}", question, answer);
@@ -40,6 +29,13 @@ namespace crossword.engine
     {
         public List<CrosswordDatabaseItem> database;
 
+        public void InitiateDatabase()
+        {
+            StreamReader reader = new StreamReader("Assets/database.json");
+            string s = reader.ReadToEnd();
+            database = UnityEngine.JsonUtility.FromJson<CrosswordDatabase>(s).database;
+        }
+
         public void AddItemToDatabase(string question, string answer)
         {
             database.Add(new CrosswordDatabaseItem(question, answer));
@@ -50,9 +46,24 @@ namespace crossword.engine
             return database.GetRandomElement();
         }
 
-        public List<CrosswordDatabaseItem> GetRandomItems(int minCharCount, int maxCharCount, List<Tuple<int, string>> intersectionsTuples)
+        public CrosswordDatabaseItem GetRandomItem(int lessThanCharCount, int equalCharCount, List<Tuple<int, string>> intersectionsTuples)
         {
-            var list = database.FindAll(x => x.answer.Length >= minCharCount && x.answer.Length <= maxCharCount);
+            var list = GetRandomItems(lessThanCharCount, equalCharCount, intersectionsTuples);
+            if (list.Count == 0) return null;
+
+            CrosswordDatabaseItem toReturn = list[0];
+            for (int i = 1; i < list.Count; i++)
+            {
+                if (toReturn.answer.Length < list[i].answer.Length)
+                    toReturn = list[i];
+            }
+
+            return toReturn;
+        }
+
+        public List<CrosswordDatabaseItem> GetRandomItems(int lessThanCharCount, int equalCharCount, List<Tuple<int, string>> intersectionsTuples)
+        {
+            var list = database.FindAll(x => x.answer.Length < lessThanCharCount || x.answer.Length == equalCharCount);
 
             for (int i = 0; i < intersectionsTuples.Count; i++)
             {
@@ -64,11 +75,6 @@ namespace crossword.engine
                 });
             }
             return list;
-        }
-
-        public CrosswordDatabaseItem GetItem(int charcount, char firstchar)
-        {
-            return database.FindAll(x => x.AnswerCharCount(charcount)).FindAll(x => x.AnswerStartsWith(firstchar)).GetRandomElement();
         }
     }
 }

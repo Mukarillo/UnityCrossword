@@ -14,6 +14,6 @@ public class Tuple<T1, T2>{
 
     public override string ToString()
     {
-        return string.Format("[Tuple] value1: {0}, value2:D {1}", value1, value2);
+        return string.Format("[Tuple] value1: {0}, value2: {1}", value1, value2);
     }
 }
