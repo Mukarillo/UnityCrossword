@@ -51,14 +51,18 @@ namespace crossword.engine
             var list = GetRandomItems(lessThanCharCount, equalCharCount, intersectionsTuples);
             if (list.Count == 0) return null;
 
-            CrosswordDatabaseItem toReturn = list[0];
-            for (int i = 1; i < list.Count; i++)
-            {
-                if (toReturn.answer.Length < list[i].answer.Length)
-                    toReturn = list[i];
-            }
+            int biggestLength = list.Max(r => r.answer.Length);
 
-            return toReturn;
+            return list.FindAll(r => r.answer.Length == biggestLength).GetRandomElement();
+
+            //CrosswordDatabaseItem toReturn = list[0];
+            //for (int i = 1; i < list.Count; i++)
+            //{
+            //    if (toReturn.answer.Length < list[i].answer.Length)
+            //        toReturn = list[i];
+            //}
+
+            //return toReturn;
         }
 
         public List<CrosswordDatabaseItem> GetRandomItems(int lessThanCharCount, int equalCharCount, List<Tuple<int, string>> intersectionsTuples)

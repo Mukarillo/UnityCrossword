@@ -59,10 +59,10 @@ namespace crossword.engine
             mCrossword.SetupTiles(mSizeWidth, mSizeHeight);
 
             //Setup corner questions
-            SetQuestionTile(0, 0, new CrosswordPositionAndOrientation(new CrosswordPosition(0, 1), CrosswordOrientation.VERTICAL), new Tuple<int, int>(0, mSizeHeight));
-            SetQuestionTile(2, 0, new CrosswordPositionAndOrientation(new CrosswordPosition(1, 0), CrosswordOrientation.HORIZONTAL), new Tuple<int, int>(0, mSizeWidth));
-            SetQuestionTile(mSizeHeight - 2, 0, new CrosswordPositionAndOrientation(new CrosswordPosition(mSizeHeight - 1, 0), CrosswordOrientation.HORIZONTAL), new Tuple<int, int>(0, mSizeWidth));
-            SetQuestionTile(0, mSizeWidth - 2, new CrosswordPositionAndOrientation(new CrosswordPosition(0, mSizeWidth - 1), CrosswordOrientation.VERTICAL), new Tuple<int, int>(0, mSizeHeight));
+            SetQuestionTile(new CrosswordPosition(0, 0), new CrosswordPositionAndOrientation(new CrosswordPosition(0, 1), CrosswordOrientation.VERTICAL), new Tuple<int, int>(0, mSizeHeight));
+            SetQuestionTile(new CrosswordPosition(2, 0), new CrosswordPositionAndOrientation(new CrosswordPosition(1, 0), CrosswordOrientation.HORIZONTAL), new Tuple<int, int>(0, mSizeWidth));
+            SetQuestionTile(new CrosswordPosition(mSizeHeight - 2, 0), new CrosswordPositionAndOrientation(new CrosswordPosition(mSizeHeight - 1, 0), CrosswordOrientation.HORIZONTAL), new Tuple<int, int>(0, mSizeWidth));
+            SetQuestionTile(new CrosswordPosition(0, mSizeWidth - 2), new CrosswordPositionAndOrientation(new CrosswordPosition(0, mSizeWidth - 1), CrosswordOrientation.VERTICAL), new Tuple<int, int>(0, mSizeHeight));
 
             //Setup the rest of the questions
             SetupQuestions();
@@ -76,56 +76,56 @@ namespace crossword.engine
         private void SetupQuestions()
         {
             #region Rows
-            var nList = Enumerable.Range(1, mSizeHeight - 1).ToList();
+            List<int> nList = Enumerable.Range(3, mSizeHeight - 5).ToList();
             nList.Shuffle();
 
-            CrosswordPositionAndOrientation tile;
+            CrosswordPositionAndOrientation answerStartTile;
 
             for (int i = 0; i < nList.Count; i++)
             {
                 if (mCrossword.GetTile(new CrosswordPosition(nList[i], 0)).hasValue) continue;
 
-                tile = GetAvailableTilesAround(nList[i], 0).GetRandomElement();
-                tile.orientation = CrosswordOrientation.HORIZONTAL;
-                FillLine(new CrosswordPosition(nList[i], 0), CrosswordOrientation.HORIZONTAL, tile);
+                answerStartTile = GetAvailableTilesAround(nList[i], 0).GetRandomElement();
+                answerStartTile.orientation = CrosswordOrientation.HORIZONTAL;
+                FillLine(new CrosswordPosition(nList[i], 0), CrosswordOrientation.HORIZONTAL, answerStartTile);
             }
             #endregion
-
+            return;
             nList.Clear();
 
             #region Columns
-            nList = Enumerable.Range(1, mSizeWidth - 1).ToList();
+            nList = Enumerable.Range(2, mSizeWidth - 2).ToList();
             nList.Shuffle();
 
             for (int i = 0; i < nList.Count; i++)
             {
                 if (mCrossword.GetTile(new CrosswordPosition(0, nList[i])).hasValue) continue;
 
-                tile = GetAvailableTilesAround(0, nList[i]).GetRandomElement();
-                tile.orientation = CrosswordOrientation.VERTICAL;
-                FillLine(new CrosswordPosition(0, nList[i]), CrosswordOrientation.VERTICAL, tile);
+                answerStartTile = GetAvailableTilesAround(0, nList[i]).GetRandomElement();
+                answerStartTile.orientation = CrosswordOrientation.VERTICAL;
+                FillLine(new CrosswordPosition(0, nList[i]), CrosswordOrientation.VERTICAL, answerStartTile);
             }
             #endregion
         }
 
-        private void FillLine(CrosswordPosition pos, CrosswordOrientation orientation, CrosswordPositionAndOrientation? posOri = null)
+        private void FillLine(CrosswordPosition questionPos, CrosswordOrientation orientation, CrosswordPositionAndOrientation? answerStartPos = null)
         {
-            if (pos.row >= mSizeHeight || pos.column >= mSizeWidth) return;
+            if (!InBounds(questionPos)) return;
 
-            var answerStartTile = posOri.HasValue ? posOri.Value : new CrosswordPositionAndOrientation(GetForwardTilePosition(pos, orientation), orientation);
+            var answerTile = answerStartPos.HasValue ? answerStartPos.Value : new CrosswordPositionAndOrientation(GetForwardTilePosition(questionPos, orientation), orientation);
 
-            if(!mCrossword.GetTile(pos).hasValue){
-                var tile = mCrossword.GetTile(answerStartTile.position);
-                if (tile is CrosswordTileAnswerItem)
-                    answerStartTile.orientation = ((CrosswordTileAnswerItem)tile).oppositeDirection;
+            if(!mCrossword.GetTile(questionPos).hasValue){
+                var tile = mCrossword.GetTile(answerTile.position);
+                if (tile is CrosswordTileAnswerItem && !answerStartPos.HasValue)
+                    answerTile.orientation = ((CrosswordTileAnswerItem)tile).oppositeDirection;
 
-                SetQuestionTile(pos.row, pos.column, answerStartTile, GetMinMaxAnswerLength(answerStartTile));
+                SetQuestionTile(questionPos, answerTile, GetMinMaxAnswerLength(answerTile));
             }
 
-            FillLine(answerStartTile.position, orientation);
+            FillLine(answerTile.position, orientation);
         }
 
-        private void SetQuestionTile(int questionRow, int questionColumn, CrosswordPositionAndOrientation answerStartTile, Tuple<int, int> answerLessOrGreaterThan)
+        private void SetQuestionTile(CrosswordPosition questionPos, CrosswordPositionAndOrientation answerStartTile, Tuple<int, int> answerLessOrGreaterThan)
         {
             var intersections = GetIntersections(answerStartTile);
             var crossDatabaseItem = mDatabase.GetRandomItem(answerLessOrGreaterThan.value1, answerLessOrGreaterThan.value2, GetIntersectionTuples(intersections));
@@ -143,7 +143,7 @@ namespace crossword.engine
 
             //Debug.Log(string.Format("Setting item: {0} at {1}", crossItem.ToString(), answerStartTile.ToString()));
 
-            mCrossword.SetTile(new CrosswordPosition(questionRow, questionColumn), crossItem);
+            mCrossword.SetTile(questionPos, crossItem);
             SetAnswerTiles(crossItem, crossDatabaseItem, answerStartTile);
         }
 
