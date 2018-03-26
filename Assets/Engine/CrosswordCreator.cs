@@ -61,8 +61,8 @@ namespace crossword.engine
             //Setup corner questions
             SetQuestionTile(new CrosswordPosition(0, 0), new CrosswordPositionAndOrientation(new CrosswordPosition(0, 1), CrosswordOrientation.VERTICAL), new Tuple<int, int>(0, mSizeHeight));
             SetQuestionTile(new CrosswordPosition(2, 0), new CrosswordPositionAndOrientation(new CrosswordPosition(1, 0), CrosswordOrientation.HORIZONTAL), new Tuple<int, int>(0, mSizeWidth));
-            SetQuestionTile(new CrosswordPosition(mSizeHeight - 2, 0), new CrosswordPositionAndOrientation(new CrosswordPosition(mSizeHeight - 1, 0), CrosswordOrientation.HORIZONTAL), new Tuple<int, int>(0, mSizeWidth));
-            SetQuestionTile(new CrosswordPosition(0, mSizeWidth - 2), new CrosswordPositionAndOrientation(new CrosswordPosition(0, mSizeWidth - 1), CrosswordOrientation.VERTICAL), new Tuple<int, int>(0, mSizeHeight));
+            FillLine(new CrosswordPosition(mSizeHeight - 2, 0), CrosswordOrientation.HORIZONTAL, new CrosswordPositionAndOrientation(new CrosswordPosition(mSizeHeight - 1, 0), CrosswordOrientation.HORIZONTAL));
+            FillLine(new CrosswordPosition(0, mSizeWidth - 2), CrosswordOrientation.VERTICAL, new CrosswordPositionAndOrientation(new CrosswordPosition(0, mSizeWidth - 1), CrosswordOrientation.VERTICAL));
 
             //Setup the rest of the questions
             SetupQuestions();
@@ -90,7 +90,7 @@ namespace crossword.engine
                 FillLine(new CrosswordPosition(nList[i], 0), CrosswordOrientation.HORIZONTAL, answerStartTile);
             }
             #endregion
-            return;
+
             nList.Clear();
 
             #region Columns
@@ -125,14 +125,20 @@ namespace crossword.engine
             FillLine(answerTile.position, orientation);
         }
 
-        private void SetQuestionTile(CrosswordPosition questionPos, CrosswordPositionAndOrientation answerStartTile, Tuple<int, int> answerLessOrGreaterThan)
+        private void SetQuestionTile(CrosswordPosition questionPos, CrosswordPositionAndOrientation answerStartTile, Tuple<int, int> answerLessOrEqual)
         {
             var intersections = GetIntersections(answerStartTile);
-            var crossDatabaseItem = mDatabase.GetRandomItem(answerLessOrGreaterThan.value1, answerLessOrGreaterThan.value2, GetIntersectionTuples(intersections));
+            var crossDatabaseItem = mDatabase.GetRandomItem(answerLessOrEqual.value1, answerLessOrEqual.value2, GetIntersectionTuples(intersections));
 
             if (crossDatabaseItem == null)
             {
-                Debug.LogWarning(string.Format("Impossible to find word with min/max characters: {0} and with intersections: {1}", answerLessOrGreaterThan, IntersectionToString(intersections)));
+                Debug.LogWarning(
+                    string.Format("Impossible to find word with less than: {0} or equal: {1} characters, and with intersections: {2}", 
+                                  answerLessOrEqual.value1,
+                                  answerLessOrEqual.value2,
+                                  IntersectionToString(intersections)
+                                 )
+                );
                 return;
             }
 
@@ -140,8 +146,6 @@ namespace crossword.engine
             crossItem.orientation = answerStartTile.orientation;
             crossItem.element = crossDatabaseItem.question;
             crossItem.startPositionAndOrientation = answerStartTile;
-
-            //Debug.Log(string.Format("Setting item: {0} at {1}", crossItem.ToString(), answerStartTile.ToString()));
 
             mCrossword.SetTile(questionPos, crossItem);
             SetAnswerTiles(crossItem, crossDatabaseItem, answerStartTile);
@@ -200,13 +204,11 @@ namespace crossword.engine
             bool canMove = true;
             while (canMove)
             {
-                equal++;
-
-                var newPos = GetForwardTilePosition(posAndOri.position, posAndOri.orientation, equal);
+                var newPos = GetForwardTilePosition(posAndOri.position, posAndOri.orientation, ++equal);
                 canMove = TileAvailable(newPos);
             }
 
-            int lessThan = MathUtils.Clamp(equal - 1, 0, int.MaxValue);
+            int lessThan = MathUtils.Max(equal - 3, 0);
 
             return new Tuple<int, int>(lessThan, equal);
         }

@@ -8,4 +8,16 @@
             result = min;
         return result;
     }
+
+    public static T Min<T>(this T value1, T value2) where T : System.IComparable<T>
+    {
+        if (value1.CompareTo(value2) < 0) return value1;
+        return value2;
+    }
+
+    public static T Max<T>(this T value1, T value2) where T : System.IComparable<T>
+    {
+        if (value1.CompareTo(value2) >= 0) return value1;
+        return value2;
+    }
 }
